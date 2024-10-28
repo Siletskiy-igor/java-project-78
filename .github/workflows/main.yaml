@@ -1,8 +1,10 @@
 name: Java CI
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
@@ -17,13 +19,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.10
-      - run: ../../app/gradlew checkstyleMain
-      - run: ../../app/gradlew test
+
+      - name: Make gradlew executable
+        run: chmod +x app/gradlew
+
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain
+        working-directory: app
+
+      - name: Run Tests
+        run: ./gradlew test
+        working-directory: app
+
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v9.0.0
         env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-          JACOCO_SOURCE_PATH: ${{github.workspace}}./src/main/java
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          JACOCO_SOURCE_PATH: ${{ github.workspace }}/src/main/java
         with:
           coverageCommand: make report
-          coverageLocations: ${{github.workspace}}./build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          coverageLocations: ${{ github.workspace }}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
