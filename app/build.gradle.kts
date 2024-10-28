@@ -11,6 +11,12 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 group = "hexlet.code"
 version = "1.0-SNAPSHOT"
 
@@ -39,4 +45,30 @@ tasks.test {
     }
 }
 
-tasks.jacocoTestReport { reports { xml.required.set(true) } }
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)  // Запуск отчета после тестов
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    "sun/**",
+                    "com/sun/**",
+                    "jdk/**",
+                    "java/**",
+                    "javax/**"
+                )
+            }
+        })
+    )
+}
